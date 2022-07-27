@@ -63,9 +63,21 @@ export class GenericVisualizationBackend extends VisualizationBackendBase {
 				context: this.getContext(),
 			});
 
+			let parse_result = parseEvaluationResultFromGenericDebugAdapter(
+				reply.result,
+				{
+					debugAdapterType: this.debugSession.session
+						.configuration.type,
+				}
+			);
+
+			if (parse_result.kind !== "error")
+				return parse_result;
+
 			// Use structural information about variables
 			// from the evaluation response if present.
-			if (reply.variablesReference) {
+			else {
+
 				const graph = await this.constructGraphFromVariablesReference(
 					reply.result,
 					reply.variablesReference
@@ -83,14 +95,6 @@ export class GenericVisualizationBackend extends VisualizationBackendBase {
 						data: graph,
 					},
 				};
-			} else {
-				return parseEvaluationResultFromGenericDebugAdapter(
-					reply.result,
-					{
-						debugAdapterType: this.debugSession.session
-							.configuration.type,
-					}
-				);
 			}
 		} catch (error) {
 			return {
